@@ -8,47 +8,50 @@ require('dotenv').config();
 
 const app = express();
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 
-app.use(bodyParser.json());
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-const connection = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    ssl: {
-        ca: fs.readFileSync(path.resolve(__dirname, process.env.SSL_CERT_PATH))
-    }
-});
+let connection;
 
-connection.connect(err => {
-    if (err) {
-        console.error('Error connecting to MySQL database:', err);
-        process.exit(1);
-    }
-    console.log('Connected to MySQL database.');
-});
+try {
+    connection = mysql.createConnection({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        ssl: process.env.SSL_CERT_PATH ? {
+            ca: fs.readFileSync(path.resolve(__dirname, process.env.SSL_CERT_PATH))
+        } : undefined
+    });
+} catch (error) {
+    console.error('Error creating MySQL connection:', error);
+}
 
-connection.on('error', (err) => {
-    console.error('Database error:', err);
-    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-        console.log('Lost connection to the database. Attempting to reconnect...');
-        connection.connect((err) => {
-            if (err) {
-                console.error('Failed to reconnect to the database:', err);
-            } else {
-                console.log('Reconnected to the database.');
-            }
-        });
-    } else {
-        throw err;
-    }
-});
+if (connection) {
+    connection.connect(err => {
+        if (err) {
+            console.error('Error connecting to MySQL database:', err);
+        } else {
+            console.log('Connected to MySQL database.');
+        }
+    });
+
+    connection.on('error', (err) => {
+        console.error('Database error:', err);
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+            console.log('Lost connection to the database. Attempting to reconnect...');
+            connection.connect();
+        } else {
+            throw err;
+        }
+    });
+}
 
 app.get('/', (req, res) => {
-    res.send('Hello from School Management API!');
+    res.send('School Management API is running!');
 });
 
 app.post('/addSchool', (req, res) => {
