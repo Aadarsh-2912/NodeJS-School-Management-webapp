@@ -3,15 +3,13 @@ const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config(); // Load environment variables from .env
+require('dotenv').config();
 
 const app = express();
-const port = "nodejs-school-management-webapp-c0frhfb3bjg0h5g5.centralindia-01.azurewebsites.net" || 3000; // Use environment variable or default to 3000
+const port = "nodejs-school-management-webapp-c0frhfb3bjg0h5g5.centralindia-01.azurewebsites.net" || 3000; 
 
-// Middleware
 app.use(bodyParser.json());
 
-// MySQL Database Connection
 const connection = mysql.createConnection({
     host: "school-management-server.mysql.database.azure.com",
     user: "system",
@@ -30,11 +28,9 @@ connection.connect(err => {
     console.log('Connected to MySQL database.');
 });
 
-// Add School API
 app.post('/addSchool', (req, res) => {
     const { name, address, latitude, longitude } = req.body;
 
-    // Validate input
     if (!name || !address || !latitude || !longitude) {
         return res.status(400).json({ error: 'All fields are required.' });
     }
@@ -49,16 +45,13 @@ app.post('/addSchool', (req, res) => {
     });
 });
 
-// List Schools API
 app.get('/listSchools', (req, res) => {
     const { latitude, longitude } = req.query;
 
-    // Validate input
     if (!latitude || !longitude) {
         return res.status(400).json({ error: 'Latitude and longitude are required.' });
     }
 
-    // Calculate distance
     const query = `
         SELECT *, (
             6371 * acos(
@@ -80,7 +73,6 @@ app.get('/listSchools', (req, res) => {
     });
 });
 
-// Start Server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
