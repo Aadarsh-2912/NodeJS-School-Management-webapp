@@ -6,19 +6,19 @@ const path = require('path');
 require('dotenv').config(); // Load environment variables from .env
 
 const app = express();
-const port = process.env.PORT || 3000; // Use environment variable or default to 3000
+const port = "nodejs-school-management-webapp-c0frhfb3bjg0h5g5.centralindia-01.azurewebsites.net" || 3000; // Use environment variable or default to 3000
 
 // Middleware
 app.use(bodyParser.json());
 
 // MySQL Database Connection
 const connection = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    host: "school-management-server.mysql.database.azure.com",
+    user: "system",
+    password: "Aaan@1229",
+    database: "school_management",
     ssl: {
-        ca: fs.readFileSync(path.resolve(__dirname, process.env.DB_SSL_CA)) // Path to the certificate file
+        ca: fs.readFileSync(path.resolve(__dirname, "DigiCertGlobalRootCA.crt.pem")) // Path to the certificate file
     }
 });
 
