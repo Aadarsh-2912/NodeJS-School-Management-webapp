@@ -5,10 +5,6 @@
     "express": "^4.19.2",
     "mysql2": "^3.11.0"
   },
-  "name": "nodejs-project",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
