@@ -77,3 +77,12 @@ app.get('/listSchools', (req, res) => {
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+
+app.get('/test-connection', (req, res) => {
+    connection.ping(err => {
+        if (err) {
+            return res.status(500).json({ error: 'Cannot connect to the database', details: err });
+        }
+        res.status(200).json({ message: 'Successfully connected to the database' });
+    });
+});
