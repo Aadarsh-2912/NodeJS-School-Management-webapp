@@ -3,13 +3,15 @@ const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
+app.use(cors());
 
 const connection = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -29,6 +31,26 @@ connection.connect(err => {
     console.log('Connected to MySQL database.');
 });
 
+connection.on('error', (err) => {
+    console.error('Database error:', err);
+    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+        console.log('Lost connection to the database. Attempting to reconnect...');
+        connection.connect((err) => {
+            if (err) {
+                console.error('Failed to reconnect to the database:', err);
+            } else {
+                console.log('Reconnected to the database.');
+            }
+        });
+    } else {
+        throw err;
+    }
+});
+
+app.get('/', (req, res) => {
+    res.send('Hello from School Management API!');
+});
+
 app.post('/addSchool', (req, res) => {
     const { name, address, latitude, longitude } = req.body;
 
@@ -40,7 +62,7 @@ app.post('/addSchool', (req, res) => {
     connection.query(query, [name, address, latitude, longitude], (err, results) => {
         if (err) {
             console.error('Error inserting school:', err);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.', details: err.message });
         }
         res.status(201).json({ message: 'School added successfully.', id: results.insertId });
     });
@@ -68,21 +90,17 @@ app.get('/listSchools', (req, res) => {
     connection.query(query, [latitude, longitude, latitude], (err, results) => {
         if (err) {
             console.error('Error fetching schools:', err);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.', details: err.message });
         }
         res.json(results);
     });
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
 });
 
-app.get('/test-connection', (req, res) => {
-    connection.ping(err => {
-        if (err) {
-            return res.status(500).json({ error: 'Cannot connect to the database', details: err });
-        }
-        res.status(200).json({ message: 'Successfully connected to the database' });
-    });
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
 });
